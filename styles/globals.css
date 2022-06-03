@@ -1,0 +1,27 @@
+html,
+body {
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+    background-color: #ffff;
+    margin: 0px;
+    position: relative;
+    /* overflow: auto; */
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.div-showed {
+    display: inline-flex;
+}
+
+.div-showed-spacing {
+    margin-left: 10px;
+    margin-right: 10px;
+}
