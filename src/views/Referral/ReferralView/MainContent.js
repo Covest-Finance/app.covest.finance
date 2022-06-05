@@ -123,20 +123,15 @@ const getEmitEvents = async (wallet, account) => {
             const poolId = await policyManagerContract.methods.symbol().call();
             console.log(`Account is : ${account}`);
             const eventsFundInFlow = await referralContract.getPastEvents("FundInFlow", {
-                filter: { whoRefer: "0x0000000000000000000000000000000000000000" }, // Using an array means OR: e.g. 20 or 23
+                filter: { whoRefer: account }, // Using an array means OR: e.g. 20 or 23
                 fromBlock: 0,
                 toBlock: "latest",
             });
 
             if (eventsFundInFlow.length > 0) {
-                console.log("eventsFundInFlow");
-                console.log(eventsFundInFlow);
                 for (let indexOfEvents = 0; indexOfEvents < eventsFundInFlow.length; indexOfEvents++) {
                     let dataOfEvents = eventsFundInFlow[indexOfEvents];
                     let transactionHash = eventsFundInFlow[indexOfEvents]?.transactionHash;
-
-                    console.log("PD ADDRESS");
-                    console.log(policyDetailsAddress);
 
                     let emitPolicy = await getBoughtPolicyEventsWithTxHash(policyManagerContract, provider, policyManagerAbi, transactionHash);
 
