@@ -12,7 +12,7 @@ const useGetTotalData = () => {
         const account = connectedWallets[0]?.accounts[0]?.address;
         if (account && account !== "0x0000000000000000000000000000000000000000") {
             const funcGetTotalData = async () => {
-                const { data } = await axios.get(`${config.url}/totalData?user=${account}`);
+                const { data } = await axios.post(`${config.url}/totalData`, { user: account });
 
                 setTotalData(data);
             };

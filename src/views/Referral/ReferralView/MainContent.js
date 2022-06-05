@@ -7,7 +7,9 @@ import { styled } from "@mui/material/styles";
 import axios from "axios";
 import { useState, useEffect } from "react";
 import keccak256 from "keccak256";
+
 let web3;
+let provider;
 
 const ReferralContentArea = styled("div")(({ theme }) => ({
     minHeight: "100vh",
@@ -30,7 +32,7 @@ const ReferralContentArea = styled("div")(({ theme }) => ({
     },
 }));
 
-const getBoughtPolicyEventsWithTxHash = async (policyManagerContract, txHash, web3Inside, abi) => {
+const getBoughtPolicyEventsWithTxHash = async (policyManagerContract, provider, abi, txHash) => {
     const eventsOfIndex = await policyManagerContract.getPastEvents("BoughtPolicy", {
         fromBlock: 0,
         toBlock: "latest",
@@ -84,9 +86,19 @@ const getFundOutFlowEventsWithTxHash = async (referralContract, txHash, web3, as
     }
 };
 
+const FormatTime = (time) => {
+    if (time < 10) {
+        return `0${time}`;
+    } else {
+        return `${time}`;
+    }
+};
+
 const getEmitEvents = async (wallet, account) => {
     if (wallet?.provider) {
         web3 = new Web3(wallet.provider);
+        provider = new ethers.providers.Web3Provider(wallet.provider);
+
         if (!account || account === "0x0000000000000000000000000000000000000000") {
             return [];
         }
@@ -98,29 +110,35 @@ const getEmitEvents = async (wallet, account) => {
         const { data: dataERC20ABI } = await axios.get(`https://api.covest.finance/api/artifacts/IERC20?version=2`);
         const referralAbi = await dataJsonABI?.Referral?.abi;
         const policyManagerAbi = await dataJsonABI?.PolicyManager?.abi;
+        const policyDetailsAbi = await dataJsonABI?.PolicyDetails?.abi;
 
         for (let i = 0; i < dataFactory.length; i++) {
             const referralAddress = dataFactory[i]?.Referral;
             const policyManagerAddress = dataFactory[i]?.policyManager;
+            const policyDetailsAddress = dataFactory[i]?.policyDetails;
             const referralContract = new web3.eth.Contract(referralAbi, referralAddress);
-
             const policyManagerContract = new web3.eth.Contract(policyManagerAbi, policyManagerAddress);
-            console.log(policyManagerAddress);
+            const policyDetailsContract = new web3.eth.Contract(policyDetailsAbi, policyDetailsAddress);
             const poolName = await policyManagerContract.methods.name().call();
             const poolId = await policyManagerContract.methods.symbol().call();
             console.log(`Account is : ${account}`);
             const eventsFundInFlow = await referralContract.getPastEvents("FundInFlow", {
-                filter: { 3: account }, // Using an array means OR: e.g. 20 or 23
+                filter: { whoRefer: "0x0000000000000000000000000000000000000000" }, // Using an array means OR: e.g. 20 or 23
                 fromBlock: 0,
                 toBlock: "latest",
             });
 
             if (eventsFundInFlow.length > 0) {
+                console.log("eventsFundInFlow");
+                console.log(eventsFundInFlow);
                 for (let indexOfEvents = 0; indexOfEvents < eventsFundInFlow.length; indexOfEvents++) {
                     let dataOfEvents = eventsFundInFlow[indexOfEvents];
                     let transactionHash = eventsFundInFlow[indexOfEvents]?.transactionHash;
 
-                    let emitPolicy = await getBoughtPolicyEventsWithTxHash(policyManagerContract, transactionHash, web3, policyManagerAbi);
+                    console.log("PD ADDRESS");
+                    console.log(policyDetailsAddress);
+
+                    let emitPolicy = await getBoughtPolicyEventsWithTxHash(policyManagerContract, provider, policyManagerAbi, transactionHash);
 
                     if (emitPolicy.length > 0) {
                         emitPolicy = emitPolicy[0];
@@ -169,8 +187,29 @@ const getEmitEvents = async (wallet, account) => {
         if (dataReturns.length > 0) {
             let dataWillReturn = [];
             for (let i = 0; i < dataReturns.length; i++) {
-                const startDate = new Date(Number(dataReturns[i]?.startDate) * 1000);
-                const endDate = new Date(Number(dataReturns[i]?.untilDate) * 1000);
+                const Timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                const startDate = new Date(Number(dataReturns[i]?.startDate) * 1000).toLocaleString("en-US", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                    timeZone: Timezone,
+                    timeZoneName: "short",
+                });
+                const endDate = new Date(Number(dataReturns[i]?.untilDate) * 1000).toLocaleString("en-US", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                    timeZone: Timezone,
+                    timeZoneName: "short",
+                });
+
+                console.log(`startDate : ${startDate}`);
 
                 const changeHours = (hours) => {
                     if (hours < 10) {
@@ -180,11 +219,9 @@ const getEmitEvents = async (wallet, account) => {
                     }
                 };
 
-                const startPeriodDay = `${startDate.getFullYear()}/${startDate.getMonth()}/${startDate.getDate()} ${changeHours(
-                    startDate.getHours(),
-                )}:${startDate.getMinutes()}:${startDate.getSeconds()}`;
+                const startPeriodDay = startDate;
 
-                const endPeriodDay = `${endDate.getFullYear()}/${endDate.getMonth()}/${endDate.getDate()} ${changeHours(endDate.getHours())}:${endDate.getMinutes()}:${endDate.getSeconds()}`;
+                const endPeriodDay = endDate;
                 console.log(dataReturns[i]?.policyId);
                 dataWillReturn.push({
                     policyId: dataReturns[i]?.policyId,
