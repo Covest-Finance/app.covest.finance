@@ -128,15 +128,15 @@ const Topbar = () => {
         }
     }, [connectedChain]);
 
-    useEffect(() => {
-        if (!connectedWallets.length) return;
+    // useEffect(() => {
+    //     if (!connectedWallets.length) return;
 
-        const walletsSub = initWeb3Onboard.state.select("wallets");
-        const { unsubscribe } = walletsSub.subscribe((wallets) => {
-            const connectedWallets = wallets.map(({ label }) => label);
-            window.localStorage.setItem("connectedWallets", JSON.stringify(connectedWallets));
-        });
-    }, [connectedWallets]);
+    //     const walletsSub = initWeb3Onboard.state.select("wallets");
+    //     const { unsubscribe } = walletsSub.subscribe((wallets) => {
+    //         const connectedWallets = wallets.map(({ label }) => label);
+    //         window.localStorage.setItem("connectedWallets", JSON.stringify(connectedWallets));
+    //     });
+    // }, [connectedWallets]);
 
     useEffect(() => {
         if (!wallet?.provider) {
@@ -157,6 +157,8 @@ const Topbar = () => {
                 if (!isLoginShowed || thisTime > isLoginShowed?.timeOut) {
                     if (isConnectedOnboard) return;
 
+                    if (wallet) return;
+
                     await connect({
                         autoSelect: { label: previouslyConnectedWallets[0] },
                     });
@@ -172,6 +174,8 @@ const Topbar = () => {
                 } else {
                     if (isConnectedOnboard) return;
 
+                    if (wallet) return;
+
                     await connect({
                         autoSelect: {
                             label: previouslyConnectedWallets[0],
@@ -182,6 +186,7 @@ const Topbar = () => {
                     isConnectedOnboard = true;
                 }
             }
+
             setWalletFromLocalStorage();
         }
     }, [onboard]);

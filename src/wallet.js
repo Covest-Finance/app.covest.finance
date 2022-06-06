@@ -110,7 +110,7 @@ export const initWeb3Onboard = init({
         icon: Icon,
         logo: Logo,
         description:
-            "Covest Finance is a peer-to-peer insurance protocol that enabled people to share risk together without the need for insurance companies as the entities to manage and custody the fund",
+            "Covest Finance is a peer-to-peer insurance protocol that enabled people to share risk together without the need for insurance companies as the entities to manage and custody the fund.",
         recommendedInjectedWallets: [{ name: "MetaMask", url: "https://metamask.io" }],
         agreement: {
             version: "1.0.0",
