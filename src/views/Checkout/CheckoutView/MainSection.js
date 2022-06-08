@@ -551,6 +551,7 @@ const RenderDetail = (paramValue) => {
           ) {
             setMessage("BoughtPolicy Successfully");
             setIsLoading(false);
+            router.push("/activecover");
             // console.log("BoughtPolicy Successfully");
             // console.log(buyPolicySendTranscation);
           }
