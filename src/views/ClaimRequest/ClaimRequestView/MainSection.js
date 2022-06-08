@@ -469,13 +469,15 @@ const RenderAfterSectedPolicy = (props) => {
         >
           <Box
             sx={{
-              top: 0,
-              left: 0,
-              bottom: 0,
-              right: 0,
               position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: 400,
+              bgcolor: "background.paper",
+              boxShadow: 24,
+              p: 4,
               display: "flex",
-              alignItems: "center",
               justifyContent: "center",
             }}
           >
@@ -483,7 +485,7 @@ const RenderAfterSectedPolicy = (props) => {
               {" "}
               <CircularProgress />
             </p>
-            <p style={{ fontSize: "20px", color: "#ffffff" }}>{message}</p>
+            <p style={{ fontSize: "20px" }}>{message}</p>
           </Box>
         </Modal>
       </div>
