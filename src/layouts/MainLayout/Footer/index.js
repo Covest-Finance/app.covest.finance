@@ -9,6 +9,7 @@ import InstagramIcon from "@mui/icons-material/Instagram";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import YouTubeIcon from "@mui/icons-material/YouTube";
+import TelegramIcon from "@mui/icons-material/Telegram";
 
 const FooterSection = styled("div")(({ theme }) => ({
   display: "flex",
@@ -124,6 +125,12 @@ export const Footer = () => {
             <DiscordIcon src="logo/icon-discord-24.png"></DiscordIcon>
           </Link>
         </FooterSocial>
+        <FooterSocial>
+          <Link href="https://t.me/covestfinance" passHref>
+            <TelegramIcon></TelegramIcon>
+          </Link>
+        </FooterSocial>
+
         <FooterSocial>
           <Link href="https://medium.com/@covest-finance-research-lab" passHref>
             <MediumIcon src="logo/icons-medium-24.png"></MediumIcon>
