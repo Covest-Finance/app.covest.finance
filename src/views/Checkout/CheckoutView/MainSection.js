@@ -559,6 +559,7 @@ const RenderDetail = (paramValue) => {
         console.error("Balance Insufficient.");
         setMessage("Balance Insufficient.");
         setIsLoading(false);
+        alert("Balance Insufficient");
       }
     }
     setIsLoading(false);

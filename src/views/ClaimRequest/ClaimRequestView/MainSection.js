@@ -29,6 +29,9 @@ import Web3 from "web3";
 import moment from "moment";
 import { config } from "../../../config";
 import PreviewIcon from "@mui/icons-material/Preview";
+import Modal from "@mui/material/Modal";
+import CircularProgress from "@mui/material/CircularProgress";
+import { useRouter } from "next/router";
 
 let provider;
 let web3;
@@ -251,11 +254,13 @@ const RenderPreviewFile = (fileUrl) => {
 };
 
 const RenderAfterSectedPolicy = (props) => {
+  const router = useRouter();
   const { isSelectedPool, policyData, accountAddress } = props;
   const [lossEvent, setLossEvent] = React.useState(null);
   const [fileValue, setFileValue] = React.useState(null);
   const [fileUrl, setFileUrl] = React.useState(null);
-
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [message, setMessage] = React.useState("Inprogress...");
   const [values, setValues] = React.useState({
     lossEvent: "",
     lossAmount: "450",
@@ -288,6 +293,61 @@ const RenderAfterSectedPolicy = (props) => {
       setFileUrl(`https://ipfs.covest.finance/ipfs/${fileResponse}`);
     }
   };
+
+  const handleLoading = (
+    topic,
+    policyData,
+    amount,
+    lossAmount,
+    description,
+    file,
+    userAddress
+  ) => {
+    setIsLoading(true);
+    RequestClaim(
+      topic,
+      policyData,
+      amount,
+      lossAmount,
+      description,
+      file,
+      userAddress
+    );
+  };
+  const handleClose = (event, reason) => {
+    if (reason && reason == "backdropClick") return;
+    myCloseModal();
+  };
+
+  async function RequestClaim(
+    topic,
+    policyData,
+    amount,
+    lossAmount,
+    description,
+    file,
+    userAddress
+  ) {
+    const response = await useRequestClaim(
+      {
+        topic: topic,
+        amount: amount,
+        lossAmount: lossAmount,
+        description: description,
+        file: file,
+      },
+      policyData.policyId,
+      policyData.poolId,
+      policyData.coverageName,
+      userAddress,
+      policyData.assetAddress,
+      policyData.assetName,
+      web3
+    );
+    //setMessage(response.message);
+    // setIsLoading(false);
+    router.push("/myclaim");
+  }
 
   if (isSelectedPool == true) {
     var end_date = today < untilDate ? today : untilDate.add("days", 0);
@@ -384,7 +444,7 @@ const RenderAfterSectedPolicy = (props) => {
               <Button
                 variant="contained"
                 onClick={() =>
-                  RequestClaim(
+                  handleLoading(
                     values.topic,
                     policyData,
                     values.claimAmount,
@@ -400,42 +460,38 @@ const RenderAfterSectedPolicy = (props) => {
             </Stack>
           </Grid>
         </FormControl>
+
+        <Modal
+          open={isLoading}
+          onClose={handleClose}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
+        >
+          <Box
+            sx={{
+              top: 0,
+              left: 0,
+              bottom: 0,
+              right: 0,
+              position: "absolute",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <p>
+              {" "}
+              <CircularProgress />
+            </p>
+            <p style={{ fontSize: "20px", color: "#ffffff" }}>{message}</p>
+          </Box>
+        </Modal>
       </div>
     );
   } else {
     return <div></div>;
   }
 };
-
-async function RequestClaim(
-  topic,
-  policyData,
-  amount,
-  lossAmount,
-  description,
-  file,
-  userAddress
-) {
-  // console.log(`web3 outside`);
-  // console.log(web3);
-  const response = await useRequestClaim(
-    {
-      topic: topic,
-      amount: amount,
-      lossAmount: lossAmount,
-      description: description,
-      file: file,
-    },
-    policyData.policyId,
-    policyData.poolId,
-    policyData.coverageName,
-    userAddress,
-    policyData.assetAddress,
-    policyData.assetName,
-    web3
-  );
-  // console.log(response);
-}
 
 async function GetPolicyData(account) {
   let poolData = await useGetPolicyForDropdown(undefined, account);
