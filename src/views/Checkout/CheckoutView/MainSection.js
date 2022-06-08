@@ -19,6 +19,9 @@ import { ethers, ContractFactory } from "ethers";
 import Web3 from "web3";
 import axios from "axios";
 import BigNumber from "bignumber.js";
+import Modal from "@mui/material/Modal";
+import CircularProgress from "@mui/material/CircularProgress";
+import Box from "@mui/material/Box";
 
 BigNumber.set({ EXPONENTIAL_AT: 1000 });
 
@@ -200,202 +203,6 @@ async function Getdata(url) {
   return data;
 }
 
-async function buyPolicy(poolId, planId, referral, currency) {
-  let account = await web3.eth.getAccounts();
-  // check null web3
-
-  const DataBlockchain = await Getdata(
-    "https://api.covest.finance/api/artifacts?version=2"
-  );
-  const IERC20 = await Getdata(
-    "https://api.covest.finance/api/artifacts/IERC20?version=2"
-  );
-
-  const DataFactory = await Getdata("https://api.covest.finance/api/Factory");
-
-  let dataFactoryUse = DataFactory.filter((item) => item.poolId === poolId);
-
-  if (!dataFactoryUse[0]) {
-    return console.error("No data factory found.");
-  } else {
-    dataFactoryUse = dataFactoryUse[0];
-  }
-
-  const policyManager = await dataFactoryUse?.policyManager;
-  const policyDetails = await dataFactoryUse?.policyDetails;
-
-  let nameRegsitryAddress = await dataFactoryUse?.nameRegistry;
-
-  let nameRegsitryContract = await new web3.eth.Contract(
-    DataBlockchain?.NameRegistry?.abi,
-    nameRegsitryAddress
-  );
-
-  let referralAddress = await nameRegsitryContract.methods.RL().call();
-  // console.log(referralAddress);
-
-  // console.log(policyManager);
-
-  web3.eth.getChainId().then(console.log);
-
-  const queryData = await Getdata(
-    `https://api.covest.finance/api/quotePolicy?user=${account[0]}&poolId=${poolId}&planId=${planId}&assets=${currency}`
-  );
-
-  if (queryData?.message) {
-    return console.error(`ERROR: ${queryData?.message}`);
-  }
-
-  const currencyAddress = queryData?.Assets;
-
-  const approveBalance = await CallTranscation(
-    IERC20,
-    currencyAddress,
-    "allowance",
-    [account[0], policyManager],
-    account[0]
-  );
-
-  let balanceOfAssetsUser = await CallTranscation(
-    IERC20,
-    currencyAddress,
-    "balanceOf",
-    [account[0]],
-    account[0]
-  );
-
-  if (referral) {
-    if (referral === "0x0000000000000000000000000000000000000000") {
-    } else {
-      const isReferral = await CallTranscation(
-        DataBlockchain?.Referral?.abi,
-        referralAddress,
-        "isReferral",
-        [referral],
-        account[0]
-      );
-
-      // console.log(isReferral);
-
-      if (!isReferral) {
-        referral = "0x0000000000000000000000000000000000000000";
-      }
-    }
-  } else {
-    referral = "0x0000000000000000000000000000000000000000";
-  }
-
-  // console.log(`Allowance : ${approveBalance.toString()}`);
-
-  // console.log(`Balance : ${balanceOfAssetsUser.toString()}`);
-
-  const decimalsOfAssets = await CallTranscation(
-    IERC20,
-    currencyAddress,
-    "decimals",
-    [],
-    account[0]
-  );
-
-  let buyValue = buy * 10 ** decimalsOfAssets;
-
-  const datapayload = await web3.eth.abi.encodeParameters(
-    [
-      "address",
-      "string",
-      "uint[]",
-      "uint",
-      "uint",
-      "uint8",
-      "bytes32",
-      "bytes32",
-    ],
-    [
-      queryData.Assets,
-      queryData.policyId,
-      queryData.Pricing,
-      queryData.generatedAt,
-      queryData.expiresAt,
-      queryData.v,
-      queryData.r,
-      queryData.s,
-    ]
-  );
-
-  const buy = queryData.Pricing[0];
-
-  // console.log(account[0], policyManager, queryData.policyId, queryData.Assets, queryData.Pricing, referral, datapayload);
-
-  if (approveBalance >= buyValue) {
-    if (balanceOfAssetsUser >= buyValue) {
-      const buyPolicySendTranscation = await SendTranscation(
-        DataBlockchain?.PolicyManager?.abi,
-        policyManager,
-        "buyPolicy",
-        [
-          queryData.policyId,
-          queryData.Assets,
-          queryData.Pricing,
-          referral,
-          datapayload,
-        ],
-        account[0]
-      );
-
-      if (buyPolicySendTranscation) {
-        if (buyPolicySendTranscation.mesasge === "BoughtPolicy Successfully") {
-          // console.log("BoughtPolicy Successfully");
-          // console.log(buyPolicySendTranscation);
-        }
-      }
-    } else {
-      console.error("Balance Insufficient.");
-    }
-  } else {
-    balanceOfAssetsUser = await CallTranscation(
-      IERC20,
-      currencyAddress,
-      "balanceOf",
-      [account[0]],
-      account[0]
-    );
-
-    buyValue = buy * 10 ** decimalsOfAssets;
-
-    await SendTranscation(
-      IERC20,
-      currencyAddress,
-      "approve",
-      [policyManager, BigNumber(buyValue).toString()],
-      account[0]
-    );
-
-    if (balanceOfAssetsUser >= buyValue) {
-      const buyPolicySendTranscation = await SendTranscation(
-        DataBlockchain?.PolicyManager?.abi,
-        policyManager,
-        "buyPolicy",
-        [
-          queryData.policyId,
-          queryData.Assets,
-          queryData.Pricing,
-          referral,
-          datapayload,
-        ],
-        account[0]
-      );
-      if (buyPolicySendTranscation) {
-        if (buyPolicySendTranscation.mesasge === "BoughtPolicy Successfully") {
-          // console.log("BoughtPolicy Successfully");
-          // console.log(buyPolicySendTranscation);
-        }
-      }
-    } else {
-      console.error("Balance Insufficient.");
-    }
-  }
-}
-
 async function CallTranscation(
   abi,
   destination,
@@ -441,6 +248,8 @@ async function SendTranscation(
       // emitter.on("txSpeedUp", // console.log);
       // emitter.on("txCancel", // console.log);
       // emitter.on("txFailed", // console.log);
+      console.log(hash);
+      console.log("hash::");
     })
     .then((res) => {
       // console.log(res);
@@ -457,12 +266,35 @@ async function SendTranscation(
       }
     })
     .catch((e) => {
-      // console.log(e);
+      console.log(e);
+
+      if (e.code === 4001) {
+        return {
+          message: "Reject By User",
+          data: e.code,
+          returnData: "Error",
+        };
+      }
+      return {
+        message: e.message,
+        data: null,
+        returnData: null,
+      };
     });
 }
 
 const RenderDetail = (paramValue) => {
-  const { account } = paramValue;
+  const { account, router } = paramValue;
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [message, setMessage] = React.useState("Inprogress...");
+  const handleLoading = (poolId, planId, referral, currency) => {
+    setIsLoading(true);
+    buyPolicy(poolId, planId, referral, currency);
+  };
+  const handleClose = (event, reason) => {
+    if (reason && reason == "backdropClick") return;
+    myCloseModal();
+  };
   const BuyCoverData = useBuyCover(paramValue.poolId, account);
   const linkReferrer = `${account}`;
   const CoverDataByPlan = BuyCoverData.filter(
@@ -474,8 +306,7 @@ const RenderDetail = (paramValue) => {
   const handleReferralChange = (event) => {
     setReferral(event.target.value);
   };
-  // console.log("referral::");
-  // console.log(referral);
+
   const handleAlignment = (event, newAlignment) => {
     setAlignment(newAlignment);
   };
@@ -510,22 +341,232 @@ const RenderDetail = (paramValue) => {
   const rangPeriodDay = `${startPeriodDay} - ${
     month[currentDay.getMonth()]
   } ${currentDay.getDate()},  ${currentDay.getFullYear() + 1}`;
+
+  async function buyPolicy(poolId, planId, referral, currency) {
+    let account = await web3.eth.getAccounts();
+    // check null web3
+
+    const DataBlockchain = await Getdata(
+      "https://api.covest.finance/api/artifacts?version=2"
+    );
+    const IERC20 = await Getdata(
+      "https://api.covest.finance/api/artifacts/IERC20?version=2"
+    );
+
+    const DataFactory = await Getdata("https://api.covest.finance/api/Factory");
+
+    let dataFactoryUse = DataFactory.filter((item) => item.poolId === poolId);
+
+    if (!dataFactoryUse[0]) {
+      setMessage("No data factory found.");
+      setIsLoading(false);
+      return console.error("No data factory found.");
+    } else {
+      dataFactoryUse = dataFactoryUse[0];
+    }
+
+    const policyManager = await dataFactoryUse?.policyManager;
+    const policyDetails = await dataFactoryUse?.policyDetails;
+
+    let nameRegsitryAddress = await dataFactoryUse?.nameRegistry;
+
+    let nameRegsitryContract = await new web3.eth.Contract(
+      DataBlockchain?.NameRegistry?.abi,
+      nameRegsitryAddress
+    );
+
+    let referralAddress = await nameRegsitryContract.methods.RL().call();
+
+    web3.eth.getChainId().then(console.log);
+
+    const queryData = await Getdata(
+      `https://api.covest.finance/api/quotePolicy?user=${account[0]}&poolId=${poolId}&planId=${planId}&assets=${currency}`
+    );
+
+    if (queryData?.message) {
+      setMessage(`${queryData?.message}`);
+      setIsLoading(false);
+      return console.error(`ERROR: ${queryData?.message}`);
+    }
+
+    const currencyAddress = queryData?.Assets;
+
+    const approveBalance = await CallTranscation(
+      IERC20,
+      currencyAddress,
+      "allowance",
+      [account[0], policyManager],
+      account[0]
+    );
+
+    let balanceOfAssetsUser = await CallTranscation(
+      IERC20,
+      currencyAddress,
+      "balanceOf",
+      [account[0]],
+      account[0]
+    );
+
+    if (referral) {
+      if (referral === "0x0000000000000000000000000000000000000000") {
+      } else {
+        const isReferral = await CallTranscation(
+          DataBlockchain?.Referral?.abi,
+          referralAddress,
+          "isReferral",
+          [referral],
+          account[0]
+        );
+
+        // console.log(isReferral);
+
+        if (!isReferral) {
+          referral = "0x0000000000000000000000000000000000000000";
+        }
+      }
+    } else {
+      referral = "0x0000000000000000000000000000000000000000";
+    }
+
+    setMessage(`Allowance : ${approveBalance.toString()}`);
+
+    // console.log(`Allowance : ${approveBalance.toString()}`);
+
+    // console.log(`Balance : ${balanceOfAssetsUser.toString()}`);
+
+    const decimalsOfAssets = await CallTranscation(
+      IERC20,
+      currencyAddress,
+      "decimals",
+      [],
+      account[0]
+    );
+
+    // setMessage(`Allowance : ${decimalsOfAssets.toString()}`);
+
+    let buyValue = buy * 10 ** decimalsOfAssets;
+
+    const datapayload = await web3.eth.abi.encodeParameters(
+      [
+        "address",
+        "string",
+        "uint[]",
+        "uint",
+        "uint",
+        "uint8",
+        "bytes32",
+        "bytes32",
+      ],
+      [
+        queryData.Assets,
+        queryData.policyId,
+        queryData.Pricing,
+        queryData.generatedAt,
+        queryData.expiresAt,
+        queryData.v,
+        queryData.r,
+        queryData.s,
+      ]
+    );
+
+    const buy = queryData.Pricing[0];
+
+    // console.log(account[0], policyManager, queryData.policyId, queryData.Assets, queryData.Pricing, referral, datapayload);
+
+    if (approveBalance >= buyValue) {
+      if (balanceOfAssetsUser >= buyValue) {
+        const buyPolicySendTranscation = await SendTranscation(
+          DataBlockchain?.PolicyManager?.abi,
+          policyManager,
+          "buyPolicy",
+          [
+            queryData.policyId,
+            queryData.Assets,
+            queryData.Pricing,
+            referral,
+            datapayload,
+          ],
+          account[0]
+        );
+
+        if (buyPolicySendTranscation) {
+          if (
+            buyPolicySendTranscation.mesasge === "BoughtPolicy Successfully"
+          ) {
+            alert("BoughtPolicy Successfully");
+            setMessage("BoughtPolicy Successfully");
+            setIsLoading(false);
+            router.push("/activecover");
+            // console.log("BoughtPolicy Successfully");
+            // console.log(buyPolicySendTranscation);
+          }
+        }
+      } else {
+        console.error("Balance Insufficient.");
+        setMessage("Balance Insufficient.");
+        setIsLoading(false);
+      }
+    } else {
+      balanceOfAssetsUser = await CallTranscation(
+        IERC20,
+        currencyAddress,
+        "balanceOf",
+        [account[0]],
+        account[0]
+      );
+      console.log("balanceOfAssetsUser::");
+      console.log(balanceOfAssetsUser);
+      buyValue = buy * 10 ** decimalsOfAssets;
+
+      const response = await SendTranscation(
+        IERC20,
+        currencyAddress,
+        "approve",
+        [policyManager, BigNumber(buyValue).toString()],
+        account[0]
+      );
+
+      if (response?.returnData === "Error") {
+        setMessage(response.message);
+        setIsLoading(false);
+      }
+
+      if (balanceOfAssetsUser >= buyValue) {
+        const buyPolicySendTranscation = await SendTranscation(
+          DataBlockchain?.PolicyManager?.abi,
+          policyManager,
+          "buyPolicy",
+          [
+            queryData.policyId,
+            queryData.Assets,
+            queryData.Pricing,
+            referral,
+            datapayload,
+          ],
+          account[0]
+        );
+        if (buyPolicySendTranscation) {
+          if (
+            buyPolicySendTranscation.mesasge === "BoughtPolicy Successfully"
+          ) {
+            setMessage("BoughtPolicy Successfully");
+            setIsLoading(false);
+            // console.log("BoughtPolicy Successfully");
+            // console.log(buyPolicySendTranscation);
+          }
+        }
+      } else {
+        console.error("Balance Insufficient.");
+        setMessage("Balance Insufficient.");
+        setIsLoading(false);
+      }
+    }
+    setIsLoading(false);
+  }
+
   return (
     <CheckoutArea>
       <CheckoutLeftArea>
-        {/* <CardArea>
-            <CardInnerArea>
-              <H5Head>Save 54%: Reduce the cost of cover with wNXM</H5Head>
-              <p>
-                wNXM can be bought at 0.0153 ETH instead of 0.0335 ETH and
-                redeemed 1:1 to NXM. Here s how:
-              </p>
-              <p>1. Get a quote below and choose to pay in NXM.</p>
-              <p>2. Buy the equivalent amount of wNXM on CowSwap.</p>
-              <p>3. Unwrap wNXM to NXM here.</p>
-              <p>4. Proceed with the cover purchase on this page.</p>
-            </CardInnerArea>
-          </CardArea> */}
         <CardArea>
           <CardInnerArea>
             <H5Head>Purchase details</H5Head>
@@ -539,42 +580,6 @@ const RenderDetail = (paramValue) => {
               token that you paid for the premium up to the insured amount.
             </p>
             <Grid container spacing={2}>
-              {/* <Grid item xs={12} md={6}>
-                <PresetAreaArea>
-                  <StyledToggleButtonGroup
-                    size="small"
-                    value={alignment}
-                    exclusive
-                    onChange={handleAlignment}
-                    aria-label="text alignment"
-                  >
-                    <ToggleButton value="30" aria-label="left aligned">
-                      39D
-                    </ToggleButton>
-                    <ToggleButton value="90" aria-label="centered">
-                      90D
-                    </ToggleButton>
-                    <ToggleButton value="360" aria-label="right aligned">
-                      1Y
-                    </ToggleButton>
-                  </StyledToggleButtonGroup>
-                </PresetAreaArea>
-              </Grid> */}
-              {/* <Grid item xs={12} md={6}>
-                <PresetAreaArea>
-                  <StyledToggleButtonGroup
-                    size="small"
-                    value={alignment}
-                    exclusive
-                    onChange={handleAlignment}
-                    aria-label="text alignment"
-                  >
-                    <ToggleButton value="Max" aria-label="left aligned">
-                      Max
-                    </ToggleButton>
-                  </StyledToggleButtonGroup>
-                </PresetAreaArea>
-              </Grid> */}
               <Grid item xs={12} md={6}>
                 <CustomTextField
                   fullWidth
@@ -625,55 +630,6 @@ const RenderDetail = (paramValue) => {
             </Grid>
           </CardInnerArea>
         </CardArea>
-        {/* <CardArea>
-            <CardInnerArea>
-              <H5Head>Terms and conditions</H5Head>
-              <p>Covered:</p>
-              <p>
-                <ul>
-                  <li>contract bugs</li>
-                  <li>economic attacks, including oracle failures</li>
-                  <li>governance attacks</li>
-                </ul>
-              </p>
-              <p>Supported chains:</p>
-              <p>
-                <CurrencyListArea>
-                  <InsuranceLogo src="https://app.insurace.io/asset/product/Biswap.png"></InsuranceLogo>
-                  <InsuranceName>Ethereum</InsuranceName>
-                  <InsuranceLogo src="https://app.insurace.io/asset/product/Biswap.png"></InsuranceLogo>
-                  <InsuranceName>Arbitrum</InsuranceName>
-                  <InsuranceLogo src="https://app.insurace.io/asset/product/Biswap.png"></InsuranceLogo>
-                  <InsuranceName>Avalanche</InsuranceName>
-                </CurrencyListArea>
-              </p>
-              <p>Claiming:</p>
-              <p>
-                <ul>
-                  <li>
-                    You must provide proof of the incurred loss at claim time.
-                  </li>
-                  <li>
-                    You should wait 72 hours after the event, so assessors have
-                    all details to make a decision.
-                  </li>
-                  <li>
-                    You can claim up to 35 days after the cover period expires,
-                    given your cover was active when the incident happened.
-                  </li>
-                </ul>
-              </p>
-              <p>
-                Protocol Cover for OlympusDAO covers assets in OlympusDAO v1 and
-                OlympusDAO v2.
-              </p>
-              <p>
-                This cover is not a contract of insurance. Cover is provided on a
-                discretionary basis with Nexus Mutual members having the final say
-                on which claims are paid. Check out full details here.
-              </p>
-            </CardInnerArea>
-          </CardArea> */}
       </CheckoutLeftArea>
       <CheckoutRightArea>
         <CardArea>
@@ -681,7 +637,6 @@ const RenderDetail = (paramValue) => {
             <H5Head>Summary</H5Head>
             <p>
               <CurrencyListArea>
-                {/* <InsuranceLogo src="https://app.insurace.io/asset/product/Biswap.png"></InsuranceLogo> */}
                 <InsuranceName>{CoverDataByPlan[0]?.name}</InsuranceName>
               </CurrencyListArea>
             </p>
@@ -706,7 +661,7 @@ const RenderDetail = (paramValue) => {
               <Button
                 variant="contained"
                 onClick={() =>
-                  buyPolicy(
+                  handleLoading(
                     paramValue.poolId,
                     paramValue.planId,
                     referral,
@@ -717,6 +672,31 @@ const RenderDetail = (paramValue) => {
                 Purchase
               </Button>
             </ButtonArea>
+            <Modal
+              open={isLoading}
+              onClose={handleClose}
+              aria-labelledby="modal-modal-title"
+              aria-describedby="modal-modal-description"
+            >
+              <Box
+                sx={{
+                  top: 0,
+                  left: 0,
+                  bottom: 0,
+                  right: 0,
+                  position: "absolute",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <p>
+                  {" "}
+                  <CircularProgress />
+                </p>
+                <p style={{ fontSize: "20px", color: "#ffffff" }}>{message}</p>
+              </Box>
+            </Modal>
           </CardInnerArea>
         </CardArea>
       </CheckoutRightArea>
@@ -760,6 +740,7 @@ const MainSection = () => {
         poolId={poolId}
         planId={planId}
         account={account}
+        router={router}
       ></RenderDetail>
     );
   } else {
