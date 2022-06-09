@@ -193,8 +193,8 @@ const StyledToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => ({
 
 const currencies = [
   {
-    value: "USDC",
-    label: "USDC",
+    value: "wUSD",
+    label: "wUSD",
   },
 ];
 async function Getdata(url) {
@@ -310,7 +310,7 @@ const RenderDetail = (paramValue) => {
   const handleAlignment = (event, newAlignment) => {
     setAlignment(newAlignment);
   };
-  const [currency, setCurrency] = React.useState("USDC");
+  const [currency, setCurrency] = React.useState("wUSD");
   const handleChange = (event) => {
     setCurrency(event.target.value);
   };

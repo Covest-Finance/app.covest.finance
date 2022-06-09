@@ -23,6 +23,9 @@ const FooterSection = styled("div")(({ theme }) => ({
   fontWeight: 400,
   color: "#acacac",
   width: "100%",
+  minHeight: "5vh",
+  position: "absolute",
+  bottom: 0,
   [theme.breakpoints.down("sm")]: {
     flexDirection: "column",
     height: "20vh",
