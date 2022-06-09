@@ -95,11 +95,14 @@ const Topbar = () => {
     async function connectWallet() {
         if (!wallet) {
             await connect();
-            if (!settingChain) {
-                const isChangeChainInternal = await changeChain();
-                if (isChangeChainInternal) {
-                    isConnectedOnboard = true;
-                    console.log("Welcome to Covest Finance");
+
+            if (connectedWallets[0]?.accounts[0]?.address) {
+                if (!settingChain) {
+                    const isChangeChainInternal = await changeChain();
+                    if (isChangeChainInternal) {
+                        isConnectedOnboard = true;
+                        console.log("Welcome to Covest Finance");
+                    }
                 }
             }
         }
@@ -108,23 +111,16 @@ const Topbar = () => {
     useEffect(() => {
         setOnboard(initWeb3Onboard);
         setNotify(initNotify());
-        if (!isConnectedOnboard) {
-            connectWallet();
-        }
     }, []);
 
     useEffect(() => {
         if (!connectedChain) return;
         if (settingChain) return;
 
-        if (isInitChain === false) {
-            setInitChain(true);
-            return;
-        }
-
         if (connectedChain?.id !== "0x6545") {
             console.log(connectedChain);
             changeChain();
+            setInitChain(true);
         }
     }, [connectedChain]);
 
@@ -170,6 +166,7 @@ const Topbar = () => {
                         isLoginShowed: true,
                         timeOut: timeOut.getTime(),
                     };
+
                     window.localStorage.setItem("isLoginShowed", JSON.stringify(dataWrite));
                 } else {
                     if (isConnectedOnboard) return;
@@ -188,8 +185,19 @@ const Topbar = () => {
             }
 
             setWalletFromLocalStorage();
+        } else {
+            if (!isConnectedOnboard) {
+                connectWallet();
+            }
         }
-    }, [onboard]);
+    }, [initWeb3Onboard, onboard, wallet, connect, connectWallet]);
+
+    useEffect(() => {
+        if (!connectedWallets.length) return;
+
+        const connectedWalletsLabelArray = connectedWallets.map(({ label }) => label);
+        window.localStorage.setItem("connectedWallets", JSON.stringify(connectedWalletsLabelArray));
+    }, [connectedWallets, wallet]);
 
     const ButtonDisconnect = styled(Button)(({ theme }) => ({
         padding: "15px 34px",
