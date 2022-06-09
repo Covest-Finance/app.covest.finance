@@ -22,6 +22,7 @@ import BigNumber from "bignumber.js";
 import Modal from "@mui/material/Modal";
 import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
+import toast, { Toaster } from "react-hot-toast";
 
 BigNumber.set({ EXPONENTIAL_AT: 1000 });
 
@@ -191,8 +192,8 @@ const StyledToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => ({
 
 const currencies = [
   {
-    value: "wUSD",
-    label: "wUSD",
+    value: "USDT",
+    label: "USDT",
   },
 ];
 async function Getdata(url) {
@@ -200,6 +201,16 @@ async function Getdata(url) {
 
   return data;
 }
+
+const notify = (message, type) => {
+  if (type === "success" || type === undefined) {
+    toast.success(message);
+  } else if (type === "error" || type === undefined) {
+    toast.error(message);
+  } else {
+    toast(message);
+  }
+};
 
 async function CallTranscation(
   abi,
@@ -267,12 +278,14 @@ async function SendTranscation(
       console.log(e);
 
       if (e.code === 4001) {
+        toast("Reject By User", "error");
         return {
           message: "Reject By User",
           data: e.code,
           returnData: "Error",
         };
       }
+      toast(e.message, "error");
       return {
         message: e.message,
         data: null,
@@ -293,6 +306,7 @@ const RenderDetail = (paramValue) => {
     if (reason && reason == "backdropClick") return;
     myCloseModal();
   };
+
   const BuyCoverData = useBuyCover(paramValue.poolId, account);
   const linkReferrer = `${account}`;
   const CoverDataByPlan = BuyCoverData.filter(
@@ -308,7 +322,7 @@ const RenderDetail = (paramValue) => {
   const handleAlignment = (event, newAlignment) => {
     setAlignment(newAlignment);
   };
-  const [currency, setCurrency] = React.useState("wUSD");
+  const [currency, setCurrency] = React.useState("USDT");
   const handleChange = (event) => {
     setCurrency(event.target.value);
   };
@@ -384,6 +398,7 @@ const RenderDetail = (paramValue) => {
     if (queryData?.message) {
       setMessage(`${queryData?.message}`);
       setIsLoading(false);
+      notify(`ERROR: ${queryData?.message}`, "error");
       return console.error(`ERROR: ${queryData?.message}`);
     }
 
@@ -500,6 +515,7 @@ const RenderDetail = (paramValue) => {
           }
         }
       } else {
+        notify("Balance Insufficient.", "error");
         console.error("Balance Insufficient.");
         setMessage("Balance Insufficient.");
         setIsLoading(false);
@@ -547,8 +563,10 @@ const RenderDetail = (paramValue) => {
           if (
             buyPolicySendTranscation.mesasge === "BoughtPolicy Successfully"
           ) {
+            console.log("BoughtPolicy Successfully");
             setMessage("BoughtPolicy Successfully");
             setIsLoading(false);
+            notify("BoughtPolicy Successfully", "success");
             router.push("/activecover");
             // console.log("BoughtPolicy Successfully");
             // console.log(buyPolicySendTranscation);
@@ -558,7 +576,7 @@ const RenderDetail = (paramValue) => {
         console.error("Balance Insufficient.");
         setMessage("Balance Insufficient.");
         setIsLoading(false);
-        alert("Balance Insufficient");
+        notify("Balance Insufficient.", "error");
       }
     }
     setIsLoading(false);
@@ -570,6 +588,8 @@ const RenderDetail = (paramValue) => {
         <CardArea>
           <CardInnerArea>
             <H5Head>Purchase details</H5Head>
+            <Toaster />
+
             <p>
               Your coverage will become effective 14 days after your purchase
               transaction is successfully recorded in the insurance pool
@@ -677,6 +697,7 @@ const RenderDetail = (paramValue) => {
               onClose={handleClose}
               aria-labelledby="modal-modal-title"
               aria-describedby="modal-modal-description"
+              style={{ borderRadius: "8px" }}
             >
               <Box
                 sx={{
@@ -746,7 +767,7 @@ const MainSection = () => {
       ></RenderDetail>
     );
   } else {
-    return <div>No data</div>;
+    return <div></div>;
   }
 };
 

@@ -32,6 +32,7 @@ import PreviewIcon from "@mui/icons-material/Preview";
 import Modal from "@mui/material/Modal";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useRouter } from "next/router";
+import ClearIcon from "@mui/icons-material/Clear";
 
 let provider;
 let web3;
@@ -224,41 +225,13 @@ function getFileType(fileName) {
   return "other";
 }
 
-const RenderPreviewFile = (fileUrl) => {
-  if (fileUrl != null) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          alignContent: "center",
-          flexDirection: "row",
-        }}
-      >
-        {" "}
-        <span>
-          <PreviewIcon style={{ color: "#0FBEFF" }}></PreviewIcon>
-        </span>
-        <a
-          target="_blank"
-          href={fileUrl}
-          style={{ color: "#0FBEFF", fontSize: "14px" }}
-          rel="noopener noreferrer"
-        >
-          Preview File
-        </a>
-      </div>
-    );
-  } else {
-    return <div></div>;
-  }
-};
-
 const RenderAfterSectedPolicy = (props) => {
   const router = useRouter();
   const { isSelectedPool, policyData, accountAddress } = props;
   const [lossEvent, setLossEvent] = React.useState(null);
   const [fileValue, setFileValue] = React.useState(null);
   const [fileUrl, setFileUrl] = React.useState(null);
+  const [fileName, setFileName] = React.useState(null);
   const [isLoading, setIsLoading] = React.useState(false);
   const [message, setMessage] = React.useState("Inprogress...");
   const [values, setValues] = React.useState({
@@ -285,12 +258,107 @@ const RenderAfterSectedPolicy = (props) => {
     }
   };
 
+  const RenderPreviewFile = (fileUrl, fileName) => {
+    if (fileUrl != null && fileName !== null) {
+      return (
+        <div>
+          <TitleRightArea>Reference Report:</TitleRightArea>
+          <LabelRightArea>Drag or choose your file to upload</LabelRightArea>
+          <BrowseFileArea>
+            <FileUploadLabel
+              style={{
+                display: "flex",
+                position: "relative",
+                flexDirection: "column",
+                marginTop: "15px",
+                marginBottom: "15px",
+                padding: "15px",
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  top: "10px",
+                  right: "10px",
+                }}
+              >
+                <a>
+                  <ClearIcon
+                    style={{
+                      color: "#000",
+                      cursor: "pointer",
+                      marginLeft: "5px",
+                    }}
+                    onClick={() => clearFile()}
+                  ></ClearIcon>
+                </a>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-end",
+                  justifyContent: "center",
+                  flexDirection: "row",
+                }}
+              >
+                <CloudUploadIcon></CloudUploadIcon>
+                <a
+                  target="_blank"
+                  href={fileUrl}
+                  style={{
+                    fontSize: "14px",
+                    marginLeft: "5px",
+                    marginBottom: "2px",
+                  }}
+                  rel="noopener noreferrer"
+                >
+                  {fileName}
+                </a>
+              </div>
+            </FileUploadLabel>
+          </BrowseFileArea>
+        </div>
+      );
+    } else {
+      return (
+        <div>
+          <TitleRightArea>Reference Report:</TitleRightArea>
+          <LabelRightArea>Drag or choose your file to upload</LabelRightArea>
+          <BrowseFileArea>
+            <InputfileCustom
+              name="file"
+              id="file"
+              type="file"
+              data-multiple-caption="{count} files selected"
+              multiple=""
+              onChange={handleFileChange}
+            ></InputfileCustom>
+            <FileUploadLabel for="file" title="No File Choosen">
+              <CloudUploadIcon fontSize="large"></CloudUploadIcon>
+              <TextCenter>Choose a File</TextCenter>
+              <p>
+                <TextCenter>PNG, GIF, WEBP, MP4 or MP3. Max 1Gb.</TextCenter>
+              </p>
+            </FileUploadLabel>
+          </BrowseFileArea>
+        </div>
+      );
+    }
+  };
+
+  const clearFile = async () => {
+    setFileValue(null);
+    setFileUrl(null);
+    setFileName(null);
+  };
+
   const handleFileChange = async (event) => {
     if (event.target.files[0]) {
       setFileValue(event.target.files[0]);
 
       const fileResponse = await SendFiles(event.target.files[0]);
       setFileUrl(`https://ipfs.covest.finance/ipfs/${fileResponse}`);
+      setFileName(event.target.files[0].name);
     }
   };
 
@@ -350,7 +418,7 @@ const RenderAfterSectedPolicy = (props) => {
   }
 
   if (isSelectedPool == true) {
-    var end_date = today < untilDate ? today : untilDate.add("days", 0);
+    var end_date = untilDate.add("days", 0); //today < untilDate ? today : untilDate.add("days", 0);
     var start_date = moment(policyData.startPeriodDay).add("days", 1);
 
     return (
@@ -414,26 +482,8 @@ const RenderAfterSectedPolicy = (props) => {
             </FormControl>
           </Grid>
         </Grid>
-        <TitleRightArea>Reference Report:</TitleRightArea>
-        <LabelRightArea>Drag or choose your file to upload</LabelRightArea>
-        {RenderPreviewFile(fileUrl)}
-        <BrowseFileArea>
-          <InputfileCustom
-            name="file"
-            id="file"
-            type="file"
-            data-multiple-caption="{count} files selected"
-            multiple=""
-            onChange={handleFileChange}
-          ></InputfileCustom>
-          <FileUploadLabel for="file" title="No File Choosen">
-            <CloudUploadIcon fontSize="large"></CloudUploadIcon>
-            <TextCenter>Choose a File</TextCenter>
-            <p>
-              <TextCenter>PNG, GIF, WEBP, MP4 or MP3. Max 1Gb.</TextCenter>
-            </p>
-          </FileUploadLabel>
-        </BrowseFileArea>
+
+        {RenderPreviewFile(fileUrl, fileName)}
 
         <FormControl fullWidth>
           <Grid item xs={12} md={12}>
@@ -646,7 +696,7 @@ const MainSection = () => {
       </ApplyArea>
     );
   } else {
-    return <div>No Data</div>;
+    return <div></div>;
   }
 };
 

@@ -51,6 +51,7 @@ ScrollTop.propTypes = {
 
 export default function MainLayout(props) {
   const { children, window } = props;
+
   return (
     <div>
       <Topbar></Topbar>

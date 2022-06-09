@@ -100,7 +100,7 @@ const MainContent = () => {
       </BuyCoverArea>
     );
   } else {
-    return <div>No data</div>;
+    return <div></div>;
   }
 };
 
