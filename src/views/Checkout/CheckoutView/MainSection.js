@@ -43,14 +43,12 @@ const CheckoutLeftArea = styled("div")(({ theme }) => ({
   width: "60%",
   padding: "20px",
   borderRadius: "8px",
-  minHeight: "120vh",
   [theme.breakpoints.down("sm")]: {},
 }));
 const CheckoutRightArea = styled("div")(({ theme }) => ({
   width: "30%",
   padding: "20px",
   borderRadius: "8px",
-  minHeight: "120vh",
   position: "relative",
   right: 0,
   marginRight: "10%",
