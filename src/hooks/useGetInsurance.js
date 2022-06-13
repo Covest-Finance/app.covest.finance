@@ -19,8 +19,10 @@ const useGetInsurance = (id, providerValue) => {
                             contractAddress: item.nameRegistry,
                             exchangeRateMIToken: (item.exchangeRateMIToken / 100).toFixed(2),
                             currentPower: powerData?.CurrentPower.toFixed(2),
-                            maxPower: powerData?.MaxPower,
-                            percentPower: ((powerData?.CurrentPower / powerData?.MaxPower) * 100).toFixed(2),
+                            maxPower: powerData?.MaxPoolStake,
+                            MinUserStake: powerData?.MinUserStake,
+                            MaxUserStake: powerData?.MaxUserStake,
+                            percentPower: ((powerData?.CurrentPower / powerData?.MaxPoolStake) * 100).toFixed(2),
                         };
                     }
                 });
@@ -37,8 +39,10 @@ const useGetInsurance = (id, providerValue) => {
                         contractAddress: item.nameRegistry,
                         exchangeRateMIToken: (item.exchangeRateMIToken / 100).toFixed(2),
                         currentPower: powerData?.CurrentPower.toFixed(2),
-                        maxPower: powerData?.MaxPower,
-                        percentPower: ((powerData?.CurrentPower / powerData?.MaxPower) * 100).toFixed(2),
+                        maxPower: powerData?.MaxPoolStake,
+                        MinUserStake: powerData?.MinUserStake,
+                        MaxUserStake: powerData?.MaxUserStake,
+                        percentPower: ((powerData?.CurrentPower / powerData?.MaxPoolStake) * 100).toFixed(2),
                     };
                 });
                 setInsuranceData(transFromData);
