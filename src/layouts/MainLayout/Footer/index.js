@@ -24,8 +24,8 @@ const FooterSection = styled("div")(({ theme }) => ({
   color: "#acacac",
   width: "100%",
   minHeight: "5vh",
-  // position: "absolute",
-  // bottom: 0,
+  position: "absolute",
+  bottom: 0,
   [theme.breakpoints.down("sm")]: {
     flexDirection: "column",
     height: "20vh",
@@ -93,7 +93,7 @@ export const Footer = () => {
   return (
     <FooterSection>
       <FooterLeftArea>
-        <p>© Covest Finance, Inc. All rights reserved.</p>
+        <p>© Covest Finance. All rights reserved.</p>
         <FooterVericleLine orientation="vertical" variant="middle" flexItem />
         <FooterLinkLeftArea>
           <Link href="/" passHref>
