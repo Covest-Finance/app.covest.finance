@@ -113,6 +113,7 @@ const Topbar = () => {
         setNotify(initNotify());
     }, []);
 
+    // Event when change network
     useEffect(() => {
         if (!connectedChain) return;
         if (settingChain) return;
