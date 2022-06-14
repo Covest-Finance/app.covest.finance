@@ -58,7 +58,16 @@ export default function MainLayout(props) {
       <React.Fragment>
         <Toolbar id="back-to-top-anchor" />
         {/* <div style={{ minHeight: "calc(100vh - 118px)", overflowY: "scroll" }}> */}
-        <div style={{ height: "84.5vh", overflowY: "scroll" }}>{children}</div>
+        <div
+          style={{
+            height: "84.5vh",
+            overflowY: "scroll",
+            width: "100%",
+            position: "fixed",
+          }}
+        >
+          {children}
+        </div>
 
         <ScrollTop {...props}>
           <Fab color="primary" size="small" aria-label="scroll back to top">
