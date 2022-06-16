@@ -351,7 +351,7 @@ const RenderDetail = (paramValue) => {
 
         web3.eth.getChainId().then(console.log);
 
-        const queryData = await Getdata(`http://localhost:8000/api/quotePolicy?user=${account[0]}&poolId=${poolId}&planId=${planId}&assets=${currency}`);
+        const queryData = await Getdata(`https://api.covest.finance/api/quotePolicy?user=${account[0]}&poolId=${poolId}&planId=${planId}&assets=${currency}`);
 
         if (queryData?.message) {
             setMessage(`${queryData?.message}`);
