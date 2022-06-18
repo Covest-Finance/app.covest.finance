@@ -11,7 +11,7 @@ import Web3 from "web3";
 import { useConnectWallet, useSetChain, useWallets } from "@web3-onboard/react";
 import { ethers, ContractFactory } from "ethers";
 import { initWeb3Onboard } from "../../../wallet";
-import { initNotify } from "../../../notify";
+// import { initNotify } from "../../../notify";
 import Stack from "@mui/material/Stack";
 
 let provider;
@@ -68,7 +68,7 @@ let isConnectedOnboard = false;
 const Topbar = () => {
     const theme = useTheme();
     const [onboard, setOnboard] = useState(null);
-    const [notify, setNotify] = useState(null);
+    // const [notify, setNotify] = useState(null);
     const connectedWallets = useWallets();
     const [isInitChain, setInitChain] = useState(false);
     const [isUnsubOnboard, setUnsubOnboard] = useState(false);
@@ -110,7 +110,7 @@ const Topbar = () => {
 
     useEffect(() => {
         setOnboard(initWeb3Onboard);
-        setNotify(initNotify());
+        // setNotify(initNotify());
     }, []);
 
     // Event when change network
@@ -255,7 +255,7 @@ const Topbar = () => {
 
         return (
             <div className="div-btn">
-                {!onboard || !notify ? <div>Loding...</div> : <></>}
+                {!onboard ? <div>Loding...</div> : <></>}
                 <div>{returnData()}</div>
                 {/* <button className="btn btn-primary" onClick={Login}>
           {status}
