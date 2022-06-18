@@ -63,42 +63,6 @@ export const initWeb3Onboard = init({
     ],
     chains: [
         {
-            id: "0x1",
-            token: "ETH",
-            label: "Ethereum",
-            rpcUrl: `https://mainnet.infura.io/v3/${INFURA_ID}`,
-        },
-        {
-            id: "0x3",
-            token: "tROP",
-            label: "Ropsten",
-            rpcUrl: `https://ropsten.infura.io/v3/${INFURA_ID}`,
-        },
-        {
-            id: "0x4",
-            token: "rETH",
-            label: "Rinkeby",
-            rpcUrl: `https://rinkeby.infura.io/v3/${INFURA_ID}`,
-        },
-        {
-            id: "0x38",
-            token: "BNB",
-            label: "Binance",
-            rpcUrl: "https://bsc-dataseed.binance.org/",
-        },
-        {
-            id: "0x89",
-            token: "MATIC",
-            label: "Polygon",
-            rpcUrl: "https://matic-mainnet.chainstacklabs.com",
-        },
-        {
-            id: "0xfa",
-            token: "FTM",
-            label: "Fantom",
-            rpcUrl: "https://rpc.ftm.tools/",
-        },
-        {
             id: "0x6545",
             token: "KUB",
             label: "Bitkub Chain - Testnet",
@@ -114,11 +78,11 @@ export const initWeb3Onboard = init({
         recommendedInjectedWallets: [{ name: "MetaMask", url: "https://metamask.io" }],
         agreement: {
             version: "1.0.0",
-            termsUrl: "https://www.blocknative.com/terms-conditions",
-            privacyUrl: "https://www.blocknative.com/privacy-policy",
+            termsUrl: "https://covest.finance/terms-conditions",
+            privacyUrl: "https://covest.finance/privacy-policy",
         },
-        gettingStartedGuide: "https://blocknative.com",
-        explore: "https://blocknative.com",
+        gettingStartedGuide: "https://covest.finance",
+        explore: "https://covest.finance",
     },
     accountCenter: {
         desktop: {
