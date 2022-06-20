@@ -7,6 +7,7 @@ import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import axios from "axios";
 import { config } from "../../../config";
 import { useConnectWallet, useSetChain, useWallets } from "@web3-onboard/react";
+import useGetNetworks from "../../../hooks/useGetNetworks";
 
 const ReferralTopContentArea = styled("div")(({ theme }) => ({
     height: "250px",
@@ -69,9 +70,9 @@ const ReferralClaimButton = styled(Button)(({ theme }) => ({
     textTransform: "none",
 }));
 
-const getDataReferral = async (user) => {
+const getDataReferral = async (user, chainId) => {
     if (user !== "0x0000000000000000000000000000000000000000") {
-        const { data } = await axios.get(`${config.url}/referralData?user=${user}`);
+        const { data } = await axios.get(`${config.url}/referralData?user=${user}&chainId=${chainId}`);
         return data;
     }
 };
@@ -79,9 +80,33 @@ const getDataReferral = async (user) => {
 const TopContentSection = () => {
     const [dataRefer, setDataRefer] = useState(null);
     const connectedWallets = useWallets();
+    const [{ chains, connectedChain, settingChain }, setChain] = useSetChain();
+    const [networksAvailable, setNetworksAvailable] = useState([]);
+    const [networksIsInit, setNetworksIsInit] = useState(false);
+    let networks = useGetNetworks();
+
+    if (networks.message === undefined) {
+        if (!networksIsInit) {
+            setNetworksIsInit(true);
+            setNetworksAvailable(networks);
+        }
+    }
+
+    const getNetworksId = (chainId) => {
+        if (networksAvailable.length > 0) {
+            if (networksAvailable.some((item) => item === Number(chainId))) {
+                return parseInt(chainId, 16);
+            } else {
+                return config.networkId;
+            }
+        } else {
+            return config.networkId;
+        }
+    };
 
     async function getRefer(account) {
-        const dataReturn = await getDataReferral(account);
+        let chainId = await getNetworksId(connectedChain?.id);
+        const dataReturn = await getDataReferral(account, chainId);
         console.log(dataReturn);
         setDataRefer(dataReturn);
     }

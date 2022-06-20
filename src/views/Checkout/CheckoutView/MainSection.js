@@ -23,6 +23,8 @@ import Modal from "@mui/material/Modal";
 import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
 import toast, { Toaster } from "react-hot-toast";
+import useGetNetworks from "../../../hooks/useGetNetworks";
+import { config } from "../../../config";
 
 BigNumber.set({ EXPONENTIAL_AT: 1000 });
 
@@ -245,8 +247,6 @@ async function SendTranscation(abi, destination, functions, parameters, account)
             // emitter.on("txSpeedUp", // console.log);
             // emitter.on("txCancel", // console.log);
             // emitter.on("txFailed", // console.log);
-            console.log(hash);
-            console.log("hash::");
         })
         .then((res) => {
             // console.log(res);
@@ -286,9 +286,34 @@ const RenderDetail = (paramValue) => {
     const { account, router } = paramValue;
     const [isLoading, setIsLoading] = React.useState(false);
     const [message, setMessage] = React.useState("Inprogress...");
-    const handleLoading = (poolId, planId, referral, currency) => {
+    const [{ chains, connectedChain, settingChain }, setChain] = useSetChain();
+    const [networksAvailable, setNetworksAvailable] = useState([]);
+    const [networksIsInit, setNetworksIsInit] = useState(false);
+
+    let networks = useGetNetworks();
+
+    if (networks.message === undefined) {
+        if (!networksIsInit) {
+            setNetworksIsInit(true);
+            setNetworksAvailable(networks);
+        }
+    }
+
+       const getNetworksId = (chainId) => {
+           if (networksAvailable.length > 0) {
+               if (networksAvailable.some((item) => item === Number(chainId))) {
+                   return parseInt(chainId, 16);
+               } else {
+                   return config.networkId;
+               }
+           } else {
+               return config.networkId;
+           }
+       };
+
+    const handleLoading = async (poolId, planId, referral, currency) => {
         setIsLoading(true);
-        buyPolicy(poolId, planId, referral, currency);
+        buyPolicy(poolId, planId, referral, currency, await getNetworksId(connectedChain?.id));
     };
     const handleClose = (event, reason) => {
         if (reason && reason == "backdropClick") return;
@@ -321,15 +346,14 @@ const RenderDetail = (paramValue) => {
 
     const rangPeriodDay = `${startPeriodDay} - ${month[currentDay.getMonth()]} ${currentDay.getDate()},  ${currentDay.getFullYear() + 1}`;
 
-    async function buyPolicy(poolId, planId, referral, currency) {
+    async function buyPolicy(poolId, planId, referral, currency, chainId) {
         let account = await web3.eth.getAccounts();
         // check null web3
 
-        const DataBlockchain = await Getdata("https://api.covest.finance/api/artifacts?version=2");
-        const IERC20 = await Getdata("https://api.covest.finance/api/artifacts/IERC20?version=2");
+        const DataBlockchain = await Getdata(`${config.url}/artifacts?version=2`);
+        const IERC20 = await Getdata(`${config.url}/artifacts/IERC20?version=2`);
 
-        const DataFactory = await Getdata("https://api.covest.finance/api/Factory");
-
+        const DataFactory = await Getdata(`${config.url}/Factory?chainId=${chainId}`);
         let dataFactoryUse = DataFactory.filter((item) => item.poolId === poolId);
 
         if (!dataFactoryUse[0]) {
@@ -351,7 +375,7 @@ const RenderDetail = (paramValue) => {
 
         web3.eth.getChainId().then(console.log);
 
-        const queryData = await Getdata(`https://api.covest.finance/api/quotePolicy?user=${account[0]}&poolId=${poolId}&planId=${planId}&assets=${currency}`);
+        const queryData = await Getdata(`${config.url}/quotePolicy?user=${account[0]}&poolId=${poolId}&planId=${planId}&assets=${currency}&chainId=${chainId}`);
 
         if (queryData?.message) {
             setMessage(`${queryData?.message}`);
@@ -399,8 +423,8 @@ const RenderDetail = (paramValue) => {
         );
 
         const buy = queryData.Pricing[0];
-
-        // console.log(account[0], policyManager, queryData.policyId, queryData.Assets, queryData.Pricing, referral, datapayload);
+        console.log("CONSOLE");
+        console.log(account[0], policyManager, queryData.policyId, queryData.Assets, queryData.Pricing, referral, datapayload);
 
         if (approveBalance >= buyValue) {
             if (balanceOfAssetsUser >= buyValue) {

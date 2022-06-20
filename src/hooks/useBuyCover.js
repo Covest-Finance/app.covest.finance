@@ -1,13 +1,40 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
+import { init, useConnectWallet, useSetChain, useWallets } from "@web3-onboard/react";
 import { config } from "../config";
+import useGetNetworks from "../hooks/useGetNetworks";
 
 const useBuyCover = (poolId, accountAddress) => {
     const [poolData, setPoolData] = useState([]);
+    const [{ chains, connectedChain, settingChain }, setChain] = useSetChain();
+    const [networksAvailable, setNetworksAvailable] = useState([]);
+    const [networksIsInit, setNetworksIsInit] = useState(false);
+
+    let networks = useGetNetworks();
+
+    if (networks.message === undefined) {
+        if (!networksIsInit) {
+            setNetworksIsInit(true);
+            setNetworksAvailable(networks);
+        }
+    }
+
+    const getNetworksId = (chainId) => {
+        if (networksAvailable.length > 0) {
+            if (networksAvailable.some((item) => item === Number(chainId))) {
+                return parseInt(chainId, 16);
+            } else {
+                return config.networkId;
+            }
+        } else {
+            return config.networkId;
+        }
+    };
 
     useEffect(() => {
         const funcGetPool = async () => {
-            const { data } = await axios.get(`${config.url}/quotePlans?user=${accountAddress}`);
+            let chainId = await getNetworksId(connectedChain?.id);
+            const { data } = await axios.get(`${config.url}/quotePlans?user=${accountAddress}&chainId=${chainId}`);
 
             if (poolId != undefined && data.message === undefined) {
                 const transFromData = data.filter((item) => item.poolId == poolId);
@@ -25,7 +52,7 @@ const useBuyCover = (poolId, accountAddress) => {
                             monthlyCost: plan.priceMonthly,
                             yearlyCost: plan.priceYearly,
                             maxCoverage: plan.maxCover,
-                            buyCoverUrl: `/checkout?poolId=${poolId}&planId=${plan.planId}`,
+                            buyCoverUrl: `/checkout?poolId=${poolId}&planId=${plan.planId}&chainId=${chainId}`,
                         };
                     });
 
@@ -39,7 +66,7 @@ const useBuyCover = (poolId, accountAddress) => {
             }
         };
         funcGetPool();
-    }, []);
+    }, [connectedChain?.id]);
 
     return poolData;
 };

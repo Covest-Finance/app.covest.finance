@@ -6,7 +6,7 @@ import Web3 from "web3";
 
 let web3;
 
-async function useRequestClaim(data, policyId, poolId, poolName, accountAddress, assetAddress, assetName, web3Param) {
+async function useRequestClaim(data, policyId, poolId, poolName, accountAddress, assetAddress, assetName, web3Param, chainId) {
     // console.log("In claim::");
 
     web3 = web3Param;
@@ -70,7 +70,7 @@ async function useRequestClaim(data, policyId, poolId, poolName, accountAddress,
     //   assetAddress
     // );
     const addressOfAssets = assetAddress; //currencyData?.Assets;
-    const getFactoryData = await GetData(`${config.url}/Factory`);
+    const getFactoryData = await GetData(`${config.url}/Factory?chainId=${chainId}`);
 
     let addressPolicyDetails = "";
     let addressPolicyManager = "";
@@ -90,11 +90,7 @@ async function useRequestClaim(data, policyId, poolId, poolName, accountAddress,
 
     const getPolicyIdUser = await CallTranscation(DataBlockchain?.PolicyDetails?.abi, addressPolicyDetails, "getPolicyId", [accountAddress, addressOfAssets]);
 
-    console.log(`${config.url}/quoteClaim?user=${accountAddress}&poolId=${poolId}&policyId=${policyId}&assets=${assetName}&hashData=${sendMetadata}`);
-
-    const queryData = await GetData(`${config.url}/quoteClaim?user=${accountAddress}&poolId=${poolId}&policyId=${policyId}&assets=${assetName}&hashData=${sendMetadata}`);
-
-    console.log(queryData);
+    const queryData = await GetData(`${config.url}/quoteClaim?user=${accountAddress}&poolId=${poolId}&policyId=${policyId}&assets=${assetName}&hashData=${sendMetadata}&chainId=${chainId}`);
 
     if (queryData.message) {
         return console.error(queryData.message);

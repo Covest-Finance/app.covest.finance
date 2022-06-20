@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
 import { config } from "../config";
+import useGetNetworks from "../hooks/useGetNetworks";
 
 import { useConnectWallet, useSetChain, useWallets } from "@web3-onboard/react";
 
@@ -9,7 +10,29 @@ const month = ["January", "February", "March", "April", "May", "June", "July", "
 const useGetPolicy = (poolId) => {
     const [policyData, setPolicyData] = useState([]);
     const connectedWallets = useWallets();
+    const [{ chains, connectedChain, settingChain }, setChain] = useSetChain();
+    const [networksAvailable, setNetworksAvailable] = useState([]);
+    const [networksIsInit, setNetworksIsInit] = useState(false);
 
+    let networks = useGetNetworks();
+
+    if (networks.message === undefined) {
+        if (!networksIsInit) {
+            setNetworksIsInit(true);
+            setNetworksAvailable(networks);
+        }
+    }
+    const getNetworksId = (chainId) => {
+        if (networksAvailable.length > 0) {
+            if (networksAvailable.some((item) => item === Number(chainId))) {
+                return parseInt(chainId, 16);
+            } else {
+                return config.networkId;
+            }
+        } else {
+            return config.networkId;
+        }
+    };
     useEffect(() => {
         let arrayPolicy = [];
         let policyObj = {};
@@ -21,9 +44,12 @@ const useGetPolicy = (poolId) => {
             const accountAddress = connectedWallets[0]?.accounts[0]?.address;
             if (accountAddress) {
                 // console.log(accountAddress);
+                let chainId = await getNetworksId(connectedChain?.id);
                 const { data } = await axios.post(`${config.url}/listPolicies`, {
                     user: accountAddress, //"0x8c2D08a22144c1Ae2A9BD98717b0a05849f5DBDF",
+                    chainId: chainId,
                 });
+                
                 let filterData = await data;
 
                 if (!filterData?.message) {
@@ -77,7 +103,7 @@ const useGetPolicy = (poolId) => {
             }
         };
         funcGetPolicy();
-    }, [connectedWallets, poolId]);
+    }, [connectedWallets]);
     // console.log(policyData);
     return policyData;
 };

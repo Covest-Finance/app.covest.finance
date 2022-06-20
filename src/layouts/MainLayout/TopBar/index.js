@@ -11,6 +11,7 @@ import Web3 from "web3";
 import { useConnectWallet, useSetChain, useWallets } from "@web3-onboard/react";
 import { ethers, ContractFactory } from "ethers";
 import { initWeb3Onboard } from "../../../wallet";
+import { config } from "../../../config";
 // import { initNotify } from "../../../notify";
 import Stack from "@mui/material/Stack";
 
@@ -59,6 +60,10 @@ const NavMobile = styled.div`
     background: #fff;
 `;
 
+function toHex(d) {
+    return ("0" + Number(d).toString(16)).slice(-2).toUpperCase();
+}
+
 String.prototype.replaceBetween = function (start, end, what) {
     return this.substring(0, start) + what + this.substring(end);
 };
@@ -84,10 +89,10 @@ const Topbar = () => {
 
     const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
     // console.log("isUnsubOnboard started::", isUnsubOnboard);
-    async function changeChain() {
+    async function changeChain(chainId) {
         if (settingChain) return;
 
-        const changeChain = await setChain({ chainId: "0x6545" });
+        const changeChain = await setChain({ chainId: chainId });
 
         return changeChain;
     }
@@ -118,9 +123,9 @@ const Topbar = () => {
         if (!connectedChain) return;
         if (settingChain) return;
 
-        if (connectedChain?.id !== "0x6545") {
+        if (connectedChain?.id !== toHex(config.networkId)) {
             console.log(connectedChain);
-            changeChain();
+            changeChain(toHex(config.networkId));
             setInitChain(true);
         }
     }, [connectedChain]);

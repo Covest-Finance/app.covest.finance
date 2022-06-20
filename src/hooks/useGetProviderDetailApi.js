@@ -5,7 +5,7 @@ import { config } from "../config";
 const UseGetProviderDetailApi = async () => {
     let providerDetailData = [];
     // console.log("UseGetProviderDetailApi::");
-    const { data } = await axios.get(`api.covest.finance/api/factory`);
+    // const { data } = await axios.get(`api.covest.finance/api/factory`);
     // console.log("data::");
     // console.log(data);
     //

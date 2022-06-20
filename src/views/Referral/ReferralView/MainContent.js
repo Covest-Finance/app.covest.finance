@@ -7,6 +7,8 @@ import { styled } from "@mui/material/styles";
 import axios from "axios";
 import { useState, useEffect } from "react";
 import keccak256 from "keccak256";
+import useGetNetworks from "../../../hooks/useGetNetworks";
+import { config } from "../../../config";
 
 let web3;
 let provider;
@@ -94,7 +96,7 @@ const FormatTime = (time) => {
     }
 };
 
-const getEmitEvents = async (wallet, account) => {
+const getEmitEvents = async (wallet, account, chainId) => {
     if (wallet?.provider) {
         web3 = new Web3(wallet.provider);
         provider = new ethers.providers.Web3Provider(wallet.provider);
@@ -105,9 +107,9 @@ const getEmitEvents = async (wallet, account) => {
 
         let dataReturns = [];
 
-        const { data: dataFactory } = await axios.get(`https://api.covest.finance/api/factory`);
-        const { data: dataJsonABI } = await axios.get(`https://api.covest.finance/api/artifacts?version=2`);
-        const { data: dataERC20ABI } = await axios.get(`https://api.covest.finance/api/artifacts/IERC20?version=2`);
+        const { data: dataFactory } = await axios.get(`${config.url}/factory?chainId=${chainId}`);
+        const { data: dataJsonABI } = await axios.get(`${config.url}/artifacts?version=2`);
+        const { data: dataERC20ABI } = await axios.get(`${config.url}/artifacts/IERC20?version=2`);
         const referralAbi = await dataJsonABI?.Referral?.abi;
         const policyManagerAbi = await dataJsonABI?.PolicyManager?.abi;
         const policyDetailsAbi = await dataJsonABI?.PolicyDetails?.abi;
@@ -240,13 +242,36 @@ const getEmitEvents = async (wallet, account) => {
 const MainContent = () => {
     const [isLoading, setLoading] = useState(false);
     const [{ wallet, connecting }, connect, disconnect] = useConnectWallet();
+    const [{ chains, connectedChain, settingChain }, setChain] = useSetChain();
     const [events, setEvents] = useState([]);
     const connectedWallets = useWallets();
+    const [networksAvailable, setNetworksAvailable] = useState([]);
+    const [networksIsInit, setNetworksIsInit] = useState(false);
+    let networks = useGetNetworks();
+
+    if (networks.message === undefined) {
+        if (!networksIsInit) {
+            setNetworksIsInit(true);
+            setNetworksAvailable(networks);
+        }
+    }
+
+    const getNetworksId = (chainId) => {
+        if (networksAvailable.length > 0) {
+            if (networksAvailable.some((item) => item === Number(chainId))) {
+                return parseInt(chainId, 16);
+            } else {
+                return config.networkId;
+            }
+        } else {
+            return config.networkId;
+        }
+    };
 
     const getEmit = async () => {
         if (isLoading === false && connectedWallets[0]?.accounts[0]?.address && wallet?.provider) {
             setLoading(true);
-            setEvents(await getEmitEvents(wallet, connectedWallets[0]?.accounts[0]?.address));
+            setEvents(await getEmitEvents(wallet, connectedWallets[0]?.accounts[0]?.address, await getNetworksId(connectedChain?.id)));
         }
     };
 

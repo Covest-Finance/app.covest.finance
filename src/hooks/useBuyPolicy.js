@@ -1,11 +1,11 @@
 import { config } from "../config";
 import axios from "axios";
 
-async function useBuyPolicy(poolId, planId, referral, currency, accountAddress) {
+async function useBuyPolicy(poolId, planId, referral, currency, accountAddress, chainId) {
     const DataBlockchain = await Getdata(`${config.url}/artifacts?version=2`);
     const IERC20 = await Getdata(`${config.url}/artifacts/IERC20?version=2`);
 
-    const DataFactory = await Getdata(`${config.url}/Factory`);
+    const DataFactory = await Getdata(`${config.url}/Factory?chainId=${chainId}`);
 
     let dataFactoryUse = DataFactory.filter((item) => item.poolId === poolId);
 
@@ -28,7 +28,7 @@ async function useBuyPolicy(poolId, planId, referral, currency, accountAddress) 
     // console.log(policyManager);
     // web3.eth.getChainId().then(console.log);
 
-    const queryData = await Getdata(`${config.url}/quotePolicy?user=${accountAddress}&poolId=${poolId}&planId=${planId}&assets=${currency}`);
+    const queryData = await Getdata(`${config.url}/quotePolicy?user=${accountAddress}&poolId=${poolId}&planId=${planId}&assets=${currency}&chainId=${chainId}`);
 
     // console.log(queryData);
 
