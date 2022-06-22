@@ -586,6 +586,7 @@ const MainSection = () => {
     }
 
     if (policyData != undefined && policyData.length >= 0 && account) {
+        ฌ;
         return (
             <ApplyArea>
                 <h4>Claim Request</h4>
