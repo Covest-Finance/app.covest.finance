@@ -67,8 +67,9 @@ export const initWeb3Onboard = init({
             token: "KUB",
             label: "Bitkub Chain - Testnet",
             rpcUrl: "https://rpc-testnet.bitkubchain.io",
+            blockExplorerUrl: "https://testnet.bkcscan.com",
         },
-        { id: "0xD904", token: "TREI", label: "REI Chain - Testnet", rpcUrl: "https://rei-testnet-rpc.moonrhythm.io/" },
+        { id: "0xD904", token: "TREI", label: "REI Chain - Testnet", rpcUrl: "https://rei-testnet-rpc.moonrhythm.io/", blockExplorerUrl: "https://reiscan.com" },
     ],
     appMetadata: {
         name: "Covest Finance",

@@ -12,6 +12,7 @@ import { useConnectWallet, useSetChain, useWallets } from "@web3-onboard/react";
 import { ethers, ContractFactory } from "ethers";
 import { initWeb3Onboard } from "../../../wallet";
 import { config } from "../../../config";
+import toHex from "to-hex";
 // import { initNotify } from "../../../notify";
 import Stack from "@mui/material/Stack";
 
@@ -60,8 +61,8 @@ const NavMobile = styled.div`
     background: #fff;
 `;
 
-function toHex(d) {
-    return ("0" + Number(d).toString(16)).slice(-2).toUpperCase();
+function toHexString(d) {
+    return toHex(Number(d), { addPrefix: true });
 }
 
 String.prototype.replaceBetween = function (start, end, what) {
@@ -103,11 +104,11 @@ const Topbar = () => {
 
             if (connectedWallets[0]?.accounts[0]?.address) {
                 if (!settingChain) {
-                    const isChangeChainInternal = await changeChain();
-                    if (isChangeChainInternal) {
-                        isConnectedOnboard = true;
-                        console.log("Welcome to Covest Finance");
-                    }
+                    // const isChangeChainInternal = await changeChain();
+                    // if (isChangeChainInternal) {
+                    //     isConnectedOnboard = true;
+                    //     console.log("Welcome to Covest Finance");
+                    // }
                 }
             }
         }
@@ -123,10 +124,11 @@ const Topbar = () => {
         if (!connectedChain) return;
         if (settingChain) return;
 
-        if (connectedChain?.id !== toHex(config.networkId)) {
-            console.log(connectedChain);
-            changeChain(toHex(config.networkId));
+        if (connectedChain?.id !== toHexString(config.networkId)) {
+            // console.log(connectedChain);
+            changeChain(toHexString(config.networkId));
             setInitChain(true);
+            console.log("Welcome to Covest Finance");
         }
     }, [connectedChain]);
 
