@@ -1,4 +1,4 @@
-import MainSection from "./applyForPoolView/MainSection";
+import MainSection from "./ApplyForPoolView/MainSection";
 
 const index = () => {
   return (

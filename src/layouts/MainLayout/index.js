@@ -1,6 +1,6 @@
 import * as React from "react";
 import Footer from "./Footer";
-import Topbar from "./Topbar";
+import Topbar from "./TopBar";
 
 import PropTypes from "prop-types";
 import Toolbar from "@mui/material/Toolbar";
